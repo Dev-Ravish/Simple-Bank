@@ -35,4 +35,4 @@ Next Steps:
 
 1. First of all, we are required to make a main testing folder (`main_test.go` in our case). 2. Then, we are required to establish a connection using `sql.open(driver_name, connection_url)` where the driver_name here is postgres and these drivers are only accessible by the package `github.com/lib/pq` which is imported as a blank import (init() of whose is qutomatically called which defines those named drivers of which postgres is also a part).
 3. Then form a testQueries variable of type *Queries and assign it with new(conn), so that we get access of all the functions that are made in the .sql can be accessible using that variable.
-4. 
+4. Next, start building test files for each of the sqlc components/files that is meant for the feature of your application.
