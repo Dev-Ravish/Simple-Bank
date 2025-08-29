@@ -16,14 +16,16 @@ const (
 
 var testQueries *Queries
 
-func TestMain(m *testing.M) {
+var testDb *sql.DB
 
-	conn, err := sql.Open(dbDriver, dbSource)
+func TestMain(m *testing.M) {
+	var err error
+	testDb, err = sql.Open(dbDriver, dbSource)
 
 	if err != nil {
 		log.Fatal("Unable to establish connection with an error thrown : ", err)
 	}
 
-	testQueries = New(conn)
+	testQueries = New(testDb)
 	os.Exit(m.Run())
 }
