@@ -15,37 +15,36 @@ func TestTransferTx(t *testing.T) {
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
+	fmt.Println("*****************before the tx - ", account1.Amount, account2.Amount)
 	n := 5
-	amount := int64(100)
+	amount := int64(10)
 
 	resultC := make(chan TransferTxResult)
 	errC := make(chan error)
 
 	for i := 0; i < n; i++ {
+		txValue := fmt.Sprintf("transacction - %d ", i+1)
 		go func() {
-			fmt.Println("starting go routine", i)
-			result, err := store.TransferTx(context.Background(), TransferTxParams{
+			cntx := context.WithValue(context.Background(), txKey, txValue)
+			result, err := store.TransferTx(cntx, TransferTxParams{
 				FromAccountId: account1.ID,
 				ToAccountId:   account2.ID,
 				Amount:        amount,
 			})
 
-			errC <- err
 			resultC <- result
-			fmt.Println("res", resultC)
+			errC <- err
 
 		}()
 	}
 
+	existed := map[int]bool{}
 	for i := 0; i < n; i++ {
-		err := <-errC
-		fmt.Println("recieved: ", err)
-
-		require.NoError(t, err)
-
 		result := <-resultC
-		fmt.Println("res recieved: ", result)
+		err := <-errC
+
 		require.NotEmpty(t, result)
+		require.NoError(t, err)
 
 		transfer := result.Transfer
 		require.NotEmpty(t, transfer)
@@ -77,14 +76,25 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetTransaction(context.Background(), fromTransaction.ID)
 		require.NoError(t, err)
 
-		// acc, errA := store.GetAccount(context.Background(), account1.ID)
-		// require.NoError(t, errA)
-		// require.Equal(t, account1.Amount-amount, acc.Amount)
+		acc1, err1 := store.GetAccount(context.Background(), result.FromAccount.ID)
+		require.NoError(t, err1)
 
-		// acc, errA = store.GetAccount(context.Background(), account1.ID)
-		// require.NoError(t, errA)
-		// require.Equal(t, account2.Amount+amount, acc.Amount)
+		acc2, err2 := store.GetAccount(context.Background(), result.ToAccount.ID)
+		require.NoError(t, err2)
 
+		fmt.Println("**************after the tx  ", "the amounts are", acc1.Amount, acc2.Amount)
+
+		diff1 := account1.Amount - acc1.Amount
+		diff2 := acc2.Amount - account2.Amount
+
+		require.Equal(t, diff1, diff2)
+		require.True(t, diff1 > 0)
+		require.True(t, diff1%amount == 0)
+
+		k := int(diff1 / amount)
+		require.True(t, k >= 1 && k <= n)
+		require.NotContains(t, existed, k)
+		existed[k] = true
 	}
 
 }

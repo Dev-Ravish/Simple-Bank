@@ -35,6 +35,7 @@ COMMENT ON COLUMN "transactions"."amount" IS 'can be positive or negative';
 
 COMMENT ON COLUMN "transfers"."amount" IS 'must be positive';
 
+-- > why was the issue coming here when below lines were commented
 ALTER TABLE "transactions" ADD FOREIGN KEY ("account_id") REFERENCES "account" ("id");
 
 ALTER TABLE "transfers" ADD FOREIGN KEY ("transfer_from_account") REFERENCES "account" ("id");

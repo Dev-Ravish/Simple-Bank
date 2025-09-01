@@ -41,6 +41,8 @@ func (store *store) execTx(ctx context.Context, fn func(q *Queries) error) error
 
 }
 
+var txKey = struct{}{}
+
 type TransferTxParams struct {
 	FromAccountId int64 `json:"transfer_from_account"`
 	ToAccountId   int64 `json:"transfer_to_account"`
@@ -58,6 +60,9 @@ type TransferTxResult struct {
 func (store *store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
+	txName := ctx.Value(txKey)
+
+	fmt.Println(txName)
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
@@ -85,6 +90,35 @@ func (store *store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		if err != nil {
 			return err
 		}
+		account1, err := q.GetAccountForUpdate(ctx, arg.FromAccountId)
+		if err != nil {
+			return err
+		}
+		fmt.Println(txName, " - before ac1, ", account1.Amount)
+
+		result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:     arg.FromAccountId,
+			Amount: account1.Amount - arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+		fmt.Println(txName, " - after ac1, ", result.FromAccount.Amount)
+
+		account2, err := q.GetAccountForUpdate(ctx, arg.ToAccountId)
+		if err != nil {
+			return err
+		}
+		fmt.Println(txName, " - before ac2, ", account2.Amount)
+
+		result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+			ID:     arg.ToAccountId,
+			Amount: account2.Amount + arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
+		fmt.Println(txName, " - after ac2, ", result.ToAccount.Amount)
 
 		return nil
 	})
