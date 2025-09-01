@@ -15,9 +15,8 @@ func TestTransferTx(t *testing.T) {
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
-	fmt.Println("*****************before the tx - ", account1.Amount, account2.Amount)
 	n := 5
-	amount := int64(10)
+	amount := int64(5)
 
 	resultC := make(chan TransferTxResult)
 	errC := make(chan error)
@@ -76,16 +75,9 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetTransaction(context.Background(), fromTransaction.ID)
 		require.NoError(t, err)
 
-		acc1, err1 := store.GetAccount(context.Background(), result.FromAccount.ID)
-		require.NoError(t, err1)
-
-		acc2, err2 := store.GetAccount(context.Background(), result.ToAccount.ID)
-		require.NoError(t, err2)
-
-		fmt.Println("**************after the tx  ", "the amounts are", acc1.Amount, acc2.Amount)
-
-		diff1 := account1.Amount - acc1.Amount
-		diff2 := acc2.Amount - account2.Amount
+		// fmt.Println(i, "acc1 - ", acc1.Balance, "********* acc2 - ", acc2.Balance)
+		diff1 := account1.Balance - result.FromAccount.Balance
+		diff2 := result.ToAccount.Balance - account2.Balance
 
 		require.Equal(t, diff1, diff2)
 		require.True(t, diff1 > 0)
@@ -97,4 +89,14 @@ func TestTransferTx(t *testing.T) {
 		existed[k] = true
 	}
 
+	updatedAccount1, err1 := store.GetAccount(context.Background(), account1.ID)
+	require.NoError(t, err1)
+
+	updatedAccount2, err2 := store.GetAccount(context.Background(), account2.ID)
+	require.NoError(t, err2)
+
+	diff1 := account1.Balance - updatedAccount1.Balance
+	diff2 := updatedAccount2.Balance - account2.Balance
+	require.Equal(t, diff1, diff2)
+	require.Equal(t, diff1, 5*amount)
 }

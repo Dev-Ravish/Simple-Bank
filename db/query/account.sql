@@ -2,7 +2,7 @@
 
 INSERT INTO account (
   owner, 
-  amount, 
+  balance, 
   currency
 ) VALUES (
   $1, $2, $3
@@ -27,8 +27,14 @@ OFFSET $2;
 
 -- name: UpdateAccount :one
 UPDATE account 
-SET amount = $2
+SET balance = $2
 WHERE id = $1 
+RETURNING *;
+
+-- name: AddAccountBalance :one
+UPDATE account 
+SET balance = balance + sqlc.arg(amount)
+WHERE id = sqlc.arg(ID)
 RETURNING *;
 
 -- name: DeleteAccount :exec

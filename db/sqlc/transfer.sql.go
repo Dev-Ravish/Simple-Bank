@@ -9,15 +9,6 @@ import (
 	"context"
 )
 
-const deleteTransfers = `-- name: DeleteTransfers :exec
-DELETE FROM transfers WHERE id = $1
-`
-
-func (q *Queries) DeleteTransfers(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteTransfers, id)
-	return err
-}
-
 const getTransfer = `-- name: GetTransfer :one
 SELECT id, transfer_from_account, transfer_to_account, amount, created_at FROM transfers
 WHERE id = $1 
@@ -35,47 +26,6 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const listTransfers = `-- name: ListTransfers :many
-SELECT id, transfer_from_account, transfer_to_account, amount, created_at FROM transfers
-ORDER BY id
-LIMIT $1
-OFFSET $2
-`
-
-type ListTransfersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error) {
-	rows, err := q.db.QueryContext(ctx, listTransfers, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Transfer
-	for rows.Next() {
-		var i Transfer
-		if err := rows.Scan(
-			&i.ID,
-			&i.TransferFromAccount,
-			&i.TransferToAccount,
-			&i.Amount,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const transferAmount = `-- name: TransferAmount :one

@@ -36,15 +36,6 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return i, err
 }
 
-const deleteTransaction = `-- name: DeleteTransaction :exec
-DELETE FROM transactions WHERE id = $1
-`
-
-func (q *Queries) DeleteTransaction(ctx context.Context, id int64) error {
-	_, err := q.db.ExecContext(ctx, deleteTransaction, id)
-	return err
-}
-
 const getTransaction = `-- name: GetTransaction :one
 SELECT id, account_id, amount, created_at FROM transactions
 WHERE id = $1 
@@ -61,44 +52,4 @@ func (q *Queries) GetTransaction(ctx context.Context, id int64) (Transaction, er
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const listTransactions = `-- name: ListTransactions :many
-SELECT id, account_id, amount, created_at FROM transactions
-ORDER BY id
-LIMIT $1
-OFFSET $2
-`
-
-type ListTransactionsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {
-	rows, err := q.db.QueryContext(ctx, listTransactions, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Transaction
-	for rows.Next() {
-		var i Transaction
-		if err := rows.Scan(
-			&i.ID,
-			&i.AccountID,
-			&i.Amount,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

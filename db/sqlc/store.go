@@ -62,7 +62,6 @@ func (store *store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 	txName := ctx.Value(txKey)
 
-	fmt.Println(txName)
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
@@ -90,35 +89,23 @@ func (store *store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		if err != nil {
 			return err
 		}
-		account1, err := q.GetAccountForUpdate(ctx, arg.FromAccountId)
-		if err != nil {
-			return err
-		}
-		fmt.Println(txName, " - before ac1, ", account1.Amount)
 
-		result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+		result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 			ID:     arg.FromAccountId,
-			Amount: account1.Amount - arg.Amount,
+			Amount: -arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
-		fmt.Println(txName, " - after ac1, ", result.FromAccount.Amount)
 
-		account2, err := q.GetAccountForUpdate(ctx, arg.ToAccountId)
-		if err != nil {
-			return err
-		}
-		fmt.Println(txName, " - before ac2, ", account2.Amount)
-
-		result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+		result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 			ID:     arg.ToAccountId,
-			Amount: account2.Amount + arg.Amount,
+			Amount: arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
-		fmt.Println(txName, " - after ac2, ", result.ToAccount.Amount)
+		fmt.Println(txName, result.ToAccount.Balance, result.FromAccount.Balance)
 
 		return nil
 	})
