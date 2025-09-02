@@ -41,3 +41,10 @@ Next Steps:
 ### Transactions
 
 TODO ::
+
+
+## CI:
+
+- Here, we will be using Github actions to perform the CI (which is like other CI tools eg - jenkins, CircleCI, Travis)
+
+In order to use github actions we are required to create a workflow (triggered based on events/scheduled/manually) which contains different jobs to be done, where each jobs are run parallely by different runners and the reports of those are seperately provided to the github by them.`Some jobs are also dependent on other jobs so they wait for them to finish and then only starts running after them serially.` Each job contains different steps which are run serially.
