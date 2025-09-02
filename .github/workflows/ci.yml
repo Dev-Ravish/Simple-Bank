@@ -31,6 +31,10 @@ jobs:
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
     
     steps:
     - name: Check out code into the go module directory
@@ -43,7 +47,7 @@ jobs:
     
     - name: Install golang-migrate
       run: |
-        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.0/migrate.linux-amd64.deb | tar xvz
+        curl -L https://github.com/golang-migrate/migrate/releases/download/v4.19.0/migrate.linux-amd64.tar.gz | tar xvz
         sudo mv migrate.linux-amd64 /usr/bin/migrate
         which migrate
 
