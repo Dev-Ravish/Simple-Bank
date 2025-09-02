@@ -4,7 +4,7 @@
 ### Postgres setup and CRUD implementation
 First let's start with makinhg the docker container (using the image postres:12-alpine in our case) by running the command:
 ```
-docker run -p 8800:8800 --name postgres12 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
+docker run -p 8800:5432 --name postgres12 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
 ```
 
 Then here we start with making the migrating file first for db creating by:
